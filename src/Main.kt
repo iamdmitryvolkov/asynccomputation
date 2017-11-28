@@ -1,13 +1,24 @@
 import core.*
 import java.io.PrintStream
 import java.util.concurrent.Executors
-val executorOne = ComputationExecutorImpl(Executors.newFixedThreadPool(1))
-val executorTwo = ComputationExecutorImpl(Executors.newFixedThreadPool(1))
-val executorThree = ComputationExecutorImpl(Executors.newFixedThreadPool(1))
+import java.util.concurrent.ThreadFactory
 
+val threadFactory = DaemonThreadFactory()
+val executorOne = ComputationExecutorImpl(Executors.newFixedThreadPool(1, threadFactory))
+val executorTwo = ComputationExecutorImpl(Executors.newFixedThreadPool(1, threadFactory))
+val executorThree = ComputationExecutorImpl(Executors.newFixedThreadPool(1, threadFactory))
+
+
+class DaemonThreadFactory : ThreadFactory {
+
+    override fun newThread(r: Runnable?): Thread {
+        return Thread(r).apply { isDaemon = true }
+    }
+
+}
 
 fun printCurrentThread() {
-    System.out.println(Thread.currentThread().id)
+    System.out.println("Thread:" + Thread.currentThread().id)
 }
 
 class LoggingComputation<T>(private val stream : PrintStream) : BaseComputation<T, T>() {
@@ -27,17 +38,34 @@ fun <T> threadLogger() = MethodComputationWrapper<T, T>({ v ->
 })
 
 val computation = MethodComputationWrapper({ v: Int -> 3 * v })
-        .add(consoleLogger()).add(threadLogger()).add(ExecutorComputation(executorTwo))
-        .add(consoleLogger()).add(threadLogger()).add(ExecutorComputation(executorThree))
-        .add(consoleLogger()).add(threadLogger())
+        .add(threadLogger()).add(ExecutorComputation(executorTwo))
+        .add(threadLogger()).add(ExecutorComputation(executorThree))
+        .add(threadLogger())
 
 
 
 fun main(args: Array<String>) {
     printCurrentThread()
     val res = computation.execute(20, executorThree).get()
+    System.out.println("run sync")
     computation.eval(20)
     System.out.println("bye")
 
-    //val e = ValueComputation(3, )
+    val e = Value(listOf(3))
+
+    e.joinValues(listOf(3, 6, 7))
+            .joinValues(3, 4, 7)
+            .map { it > 2 }.then { it.first() }.check { it }.thn { 3 }.els { 5 }
+            .check { it != 5 }.thn { it * 5 }.endIf()
+            .switch { it }.default { it * 3 }
+            .switch { it / 9 }
+            .case(1, { 111 })
+            .case(2, { 222 })
+            .case(3, { 333 })
+            .case(4, { 444 })
+            .case(5, { 555 })
+            .default { 777 }
+            .compute {
+        System.out.print(it)
+    }
 }

@@ -103,7 +103,6 @@ abstract class BaseComputation<in T, E> : FutureTaskComputation<T, E>() {
             MethodComputationWrapper({ arg -> nextComputation.eval(eval(arg)) })
         }
     }
-
 }
 
 private class ExecutorComputationWrapper<in T, E>(private val method : (T) -> E,
@@ -129,8 +128,8 @@ class ExecutorComputation<T>(internal val executor : ComputationExecutor) : Base
 
 }
 
-class ValueComputation<in T, E>(private val value : E) : BaseComputation<T, E>() {
+class ValueComputation<T>(private val obj: T) : BaseComputation<Any?, T>() {
 
-    override fun eval(arg: T): E = value
+    override fun eval(arg: Any?): T = obj
 
 }
