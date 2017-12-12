@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Computation core classes and interfaces
- * TODO: decrease visibility modifiers
  *
  * @author Dmitry Volkov
  */
@@ -45,7 +44,7 @@ class ComputationExecutorImpl(private val executor: Executor) : ComputationExecu
 
     private val taskQueue : ArrayDeque<ComputationTask> = ArrayDeque()
 
-    override fun addTask(task: Runnable) { // TODO: blocking deque?
+    override fun addTask(task: Runnable) {
         val computationTask = ComputationTask(task)
         taskQueue.addLast(computationTask)
         executor.execute(computationTask)

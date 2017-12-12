@@ -51,11 +51,11 @@ fun main(args: Array<String>) {
     computation.eval(20)
     System.out.println("bye")
 
-    val e = Value(listOf(3))
+    val e = value(listOf(3))
 
     e.joinValues(listOf(3, 6, 7))
             .joinValues(3, 4, 7)
-            .map { it > 2 }.then { it.first() }.check { it }.thn { 3 }.els { 5 }
+            .map { it > 2 }.then { it.first() }.check { it }.thn { 3} .els { 5 }
             .check { it != 5 }.thn { it * 5 }.endIf()
             .switch { it }.default { it * 3 }
             .switch { it / 9 }
@@ -65,6 +65,24 @@ fun main(args: Array<String>) {
             .case(4, { 444 })
             .case(5, { 555 })
             .default { 777 }
+            .every({2 * it}, {3 * it})
+            .then { it.max()!! }
+            .every({2 * it}, {3 * it})
+            .first()
+            .every({2 * it}, {3 * it})
+            .apply({7 + it })
+            .filter { it > 2000 }
+            .flatMap { it -> listOf(it) }
+            .fold(0, { a, b -> maxOf(a, b) })
+            .every({2 * it}, {3 * it})
+            .zip(arrayOf(4, 5, 6))
+            .map { listOf(it.first, it.second) }
+            .zip()
+            .zip()
+            .map { it[0] to it[1] }
+            .unzip()
+            .fst()
+            .last()
             .compute {
         System.out.print(it)
     }
