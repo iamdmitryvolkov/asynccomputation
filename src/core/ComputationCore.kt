@@ -1,6 +1,5 @@
 package core
 
-import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
@@ -91,17 +90,23 @@ abstract class FutureTaskComputation<in T, E> : Computation<T, E> {
             executor.addTask(it)
         }
     }
+
+    final override fun <D> add(nextComputation: Computation<E, D>) : Computation<T, D> {
+        return if (nextComputation is ExecutorComputation<*>) {
+            ExecutorComputationWrapper({ arg -> eval(arg) as D }, nextComputation.executor)
+        } else {
+            return getCombinedComputation(nextComputation)
+        }
+    }
+
+    protected abstract fun <D> getCombinedComputation(nextComputation: Computation<E, D>) : Computation<T, D>
 }
 
 
 abstract class BaseComputation<in T, E> : FutureTaskComputation<T, E>() {
 
-    override fun <D> add(nextComputation: Computation<E, D>) : Computation<T, D> {
-        return if (nextComputation is ExecutorComputation<*>) {
-            ExecutorComputationWrapper({ arg -> eval(arg) as D }, nextComputation.executor)
-        } else {
-            MethodComputationWrapper({ arg -> nextComputation.eval(eval(arg)) })
-        }
+    override fun <D> getCombinedComputation(nextComputation: Computation<E, D>) : Computation<T, D> {
+        return MethodComputationWrapper({ arg -> nextComputation.eval(eval(arg)) })
     }
 }
 
@@ -111,12 +116,9 @@ private class ExecutorComputationWrapper<in T, E>(private val method : (T) -> E,
 
     override fun eval(arg: T): E = method(arg)
 
-    override fun <D> add(nextComputation: Computation<E, D>) : Computation<T, D> {
-        return if (nextComputation is ExecutorComputation<*>) {
-            ExecutorComputationWrapper({ arg -> eval(arg) as D }, nextComputation.executor)
-        } else {
-            ExecutorComputationWrapper({ arg -> waitForExecution(nextComputation.execute(eval(arg), executor)) }, executor)
-        }
+    override fun <D> getCombinedComputation(nextComputation: Computation<E, D>) : Computation<T, D> {
+        return ExecutorComputationWrapper({ arg -> waitForExecution(nextComputation.execute(eval(arg), executor)) },
+                executor)
     }
 }
 
