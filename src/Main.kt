@@ -38,9 +38,9 @@ fun <T> threadLogger() = MethodComputationWrapper<T, T>({ v ->
 })
 
 val computation = MethodComputationWrapper({ v: Int -> 3 * v })
-        .add(threadLogger()).add(ExecutorComputation(executorTwo))
-        .add(threadLogger()).add(ExecutorComputation(executorThree))
-        .add(threadLogger())
+        .add(threadLogger()).add(threadLogger()).add(ExecutorComputation(executorTwo))
+        .add(threadLogger()).add(threadLogger()).add(ExecutorComputation(executorThree))
+        .add(threadLogger()).add(threadLogger())
 
 
 

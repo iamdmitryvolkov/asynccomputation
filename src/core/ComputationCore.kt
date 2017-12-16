@@ -1,5 +1,6 @@
 package core
 
+import java.lang.reflect.Method
 import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
@@ -111,7 +112,11 @@ private class ExecutorComputationWrapper<in T, E>(private val method : (T) -> E,
     override fun eval(arg: T): E = method(arg)
 
     override fun <D> add(nextComputation: Computation<E, D>) : Computation<T, D> {
-        return MethodComputationWrapper({ arg -> waitForExecution(nextComputation.execute(eval(arg), executor)) })
+        return if (nextComputation is ExecutorComputation<*>) {
+            ExecutorComputationWrapper({ arg -> eval(arg) as D }, nextComputation.executor)
+        } else {
+            ExecutorComputationWrapper({ arg -> waitForExecution(nextComputation.execute(eval(arg), executor)) }, executor)
+        }
     }
 }
 
