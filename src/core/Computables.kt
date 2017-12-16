@@ -134,6 +134,10 @@ fun <T, D : Iterable<Iterable<T>>> Calculation<D>.zip() : Calculation<List<List<
     }
 }
 
+fun <T, E, D : Iterable<T>> Calculation<D>.any(func: (T) -> Boolean) = then { it.any(func) }
+
+fun <T, E, D : Iterable<T>> Calculation<D>.all(func: (T) -> Boolean) = then { it.all(func) }
+
 fun <T, D : Iterable<Iterable<T>>> Calculation<D>.joinValues() = flatMap { it }
 
 fun <T, E, D : Pair<T, E>> Calculation<D>.fst() = then { it.first }
